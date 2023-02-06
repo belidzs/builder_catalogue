@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, List, Tuple
-from api import LegoApi    
+from api import LegoApi  
 
 
 logger = logging.getLogger(__name__)
@@ -30,8 +30,7 @@ def is_buildable(set, inventory: Dict[Tuple[str, str, int], int]) -> bool:
 def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[str, Any]]:
     """Returns a list of sets the user can build"""
     # get user
-    id = api.get_user_id(username)
-    user = api.get_user_details(id)
+    user = api.get_user_details_by_username(username)
     
     # build an inventory which can be searched in O(1)
     inventory = {}
@@ -51,14 +50,25 @@ def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[str, Any]]:
     # loop through the remaining sets
     result = []
     for set in filtered_sets:
-        full_set = api.get_set_details(set["id"])
-        if is_buildable(full_set, inventory):
+        set_details = api.get_set_details(set["id"])
+        if is_buildable(set_details, inventory):
             result.append(set)
     return result
+
+def find_build_partner(api: LegoApi, username: str, set: str) -> List[Any]:
+    user = api.get_user_details(api.get_user_id(username))
+    partners = []
+    for user in api.get_users():
+        user_detail = api.get_user_details(user["id"])
+        print(user_detail)
 
 
 if __name__ == "__main__":
     api = LegoApi()
     username = "brickfan35"
-    result = get_buildable_sets(api, username)
-    logger.info(f"{username} can build the following sets: {[x['name'] for x in result]}")
+    #result = get_buildable_sets(api, username)
+    #logger.info(f"{username} can build the following sets: {[x['name'] for x in result]}")
+    username = "landscape-artist"
+    set = "tropical-island"
+    result = find_build_partner(api, username, set)
+    print(result)
