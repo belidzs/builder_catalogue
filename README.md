@@ -11,14 +11,17 @@ Dependencies are managed using [Poetry](https://python-poetry.org/)
 ### First look
 At first I have tried to locate Swagger or OpenAPI schemas at conventional locations, but couldn't find any.
 
-Because there was no API definition which I could have used to generate the API client skeleton, I have coded a small abstraction layer on top of the `requests` calls myself to make the code easier to read and easier to test without mocking.
+Since there was no API definition which I could have used to generate the API client skeleton, I have coded a small abstraction layer on top of the `requests` calls myself to make the code easier to read and easier to test without mocking.
 
-I have realized early that since the total piece count is provided by both the sets and the user data, a bunch of sets could be dropped very early in the elimination process.
+For most other languages, I would have probably built the model out using a bunch of dataclasses, so that the typing system can help during coding and the compiler can validate the code. However, in Python it's not considered very idiomatic, so I have decided not to do that.
+
+I have realized early that the total piece count is provided by both the sets and the user inventory, so I could very easily eliminate those sets which were made up of less bricks than the user had in total.
 
 ### Data structure
-I have noticed that the data structure for a user's personal inventory was way too deep for my use case, so I have decided to flatten it out in a way that the quantities are stored per unique `(design ID, color)` combinations. 
 
-Since these combinations are unique per user, I was able to use them as key values to a dictionary. Dictionary items can be inserted and queried in constant time, so it is a perfect choice to store the available amount of a specific piece.
+I have also noticed that the data structure for a user's personal inventory was way too deep for my use case, so I have decided to flatten it out in a way that the quantities are stored per unique `(design ID, color)` combinations. 
+
+Since these combinations are unique per user, I was able to use them as key values in a dictionary. Dictionary items can be inserted and queried in constant time, so it is a perfect choice for storing the available amounts of a specific piece.
 
 ### Network calls
 Around line 40 in `main.py` I have made a decision to make a separate network call for each individual set to the API.

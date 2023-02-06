@@ -37,7 +37,6 @@ def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[str, Any]]:
     # loop through the remaining sets
     result = []
     for set in filtered_sets:
-        # depending on the size of the sets and the cost of calling the network each time, it might make more sense to pull all the sets, instead of individually
         full_set = api.get_set_details(set["id"])
         buildable = True
         for piece in full_set["pieces"]:
