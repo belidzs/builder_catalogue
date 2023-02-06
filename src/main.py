@@ -1,18 +1,21 @@
-from typing import Tuple
+import logging
+from typing import Any, Dict, List, Tuple
 from api import LegoApi    
 
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
+
 def flatten_pieces(pieces) -> Tuple[str, str, int]:
+    """Returns the pieces as a tuple: (pieceId, color, count)"""
     for piece in pieces:
         for variant in piece["variants"]:
             yield (piece["pieceId"], variant["color"], variant["count"])
 
-
-if __name__ == "__main__":
-    api = LegoApi()
-
+def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[Any, Any]]:
+    """Returns a list of sets the user can build"""
     # get user
-    username = "brickfan35"
     id = api.get_user_id(username)
     user = api.get_user_details(id)
     
@@ -20,10 +23,8 @@ if __name__ == "__main__":
     inventory = {}
     for piece in flatten_pieces(user["collection"]):
         inventory[(piece[0], piece[1])] = piece[2]
-    #print(inventory)
 
     sets = api.get_sets()
-    #print(sets[0])
     
     # first approach: keep only those sets which require less than or equal number of pieces than the user has
     filtered_sets = []
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         if set["totalPieces"] <= user["brickCount"]:
             filtered_sets.append(set)
 
-    print(f"Eliminated {len(sets) - len(filtered_sets)} sets due to total piece count constraints")
+    logger.debug(f"Eliminated {len(sets) - len(filtered_sets)} sets due to total piece count constraints")
 
     result = []
     for set in filtered_sets:
@@ -46,5 +47,11 @@ if __name__ == "__main__":
                 break
         if buildable:
             result.append(set)
-    
-    print(f"{username} can build the following sets: {[x['name'] for x in result]}")
+    return result
+
+
+if __name__ == "__main__":
+    api = LegoApi()
+    username = "brickfan35"
+    result = get_buildable_sets(api, username)
+    logger.info(f"{username} can build the following sets: {[x['name'] for x in result]}")
