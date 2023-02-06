@@ -1,6 +1,6 @@
 """Provides access to the LEGO API"""
-from typing import Any, List, Dict
 import requests
+from typing import Any, List, Dict
 
 
 class LegoApi():

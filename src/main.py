@@ -13,6 +13,20 @@ def flatten_pieces(pieces: Dict[str, Any]) -> Tuple[str, str, int]:
         for variant in piece["variants"]:
             yield (piece["pieceId"], variant["color"], variant["count"])
 
+def is_buildable(set, inventory: Dict[Tuple[str, str, int], int]) -> bool:
+    """Determines whether a set could be built by using the inventory provided"""
+    buildable = True
+    for piece in set["pieces"]:
+        if (piece["part"]["designID"], str(piece["part"]["material"])) not in inventory.keys():
+            # if user doesn't have a necessary piece, the set can't be built, so we break out from the cycle
+            buildable = False
+            break
+        if inventory[(piece["part"]["designID"], str(piece["part"]["material"]))] < piece["quantity"]:
+            # if user has less than the necessary amount of a piece, the set can't be built, so we break out from the cycle
+            buildable = False
+            break
+    return buildable
+
 def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[str, Any]]:
     """Returns a list of sets the user can build"""
     # get user
@@ -38,17 +52,7 @@ def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[str, Any]]:
     result = []
     for set in filtered_sets:
         full_set = api.get_set_details(set["id"])
-        buildable = True
-        for piece in full_set["pieces"]:
-            if (piece["part"]["designID"], str(piece["part"]["material"])) not in inventory.keys():
-                # if user doesn't have a necessary piece, the set can't be built, so we break out from the cycle
-                buildable = False
-                break
-            if inventory[(piece["part"]["designID"], str(piece["part"]["material"]))] < piece["quantity"]:
-                # if user has less than the necessary amount of a piece, the set can't be built, so we break out from the cycle
-                buildable = False
-                break
-        if buildable:
+        if is_buildable(full_set, inventory):
             result.append(set)
     return result
 
