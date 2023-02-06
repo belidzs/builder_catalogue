@@ -7,13 +7,13 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 
-def flatten_pieces(pieces) -> Tuple[str, str, int]:
-    """Returns the pieces as a tuple: (pieceId, color, count)"""
+def flatten_pieces(pieces: Dict[str, Any]) -> Tuple[str, str, int]:
+    """Returns owned pieces flattened to a tuple in the following format: (pieceId, color, count)"""
     for piece in pieces:
         for variant in piece["variants"]:
             yield (piece["pieceId"], variant["color"], variant["count"])
 
-def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[Any, Any]]:
+def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[str, Any]]:
     """Returns a list of sets the user can build"""
     # get user
     id = api.get_user_id(username)
@@ -34,15 +34,19 @@ def get_buildable_sets(api: LegoApi, username: str) -> List[Dict[Any, Any]]:
 
     logger.debug(f"Eliminated {len(sets) - len(filtered_sets)} sets due to total piece count constraints")
 
+    # loop through the remaining sets
     result = []
     for set in filtered_sets:
+        # depending on the size of the sets and the cost of calling the network each time, it might make more sense to pull all the sets, instead of individually
         full_set = api.get_set_details(set["id"])
         buildable = True
         for piece in full_set["pieces"]:
             if (piece["part"]["designID"], str(piece["part"]["material"])) not in inventory.keys():
+                # if user doesn't have a necessary piece, the set can't be built, so we break out from the cycle
                 buildable = False
                 break
             if inventory[(piece["part"]["designID"], str(piece["part"]["material"]))] < piece["quantity"]:
+                # if user has less than the necessary amount of a piece, the set can't be built, so we break out from the cycle
                 buildable = False
                 break
         if buildable:

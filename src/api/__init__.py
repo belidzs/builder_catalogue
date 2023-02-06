@@ -1,3 +1,4 @@
+"""Provides access to the LEGO API"""
 from typing import Any, List, Dict
 import requests
 
