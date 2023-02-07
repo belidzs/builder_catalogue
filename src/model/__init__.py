@@ -10,7 +10,7 @@ class InventoryItem():
     color: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class User():
     """A user."""
     id: str
@@ -18,13 +18,13 @@ class User():
     brick_count: int
 
 
-@dataclass(frozen=True)
+@dataclass()
 class DetailedUser(User):
     """A user complete with their brick inventory."""
     collection: Dict[InventoryItem, int]
 
 
-@dataclass(frozen=True)
+@dataclass()
 class Set():
     """A set to be built."""
     id: str
@@ -32,7 +32,7 @@ class Set():
     brick_count: int    
 
 
-@dataclass(frozen=True)
+@dataclass()
 class DetailedSet(Set):
     """A set to be built complete with the required pieces."""
     pieces: Dict[InventoryItem, int]
