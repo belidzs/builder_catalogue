@@ -6,7 +6,7 @@ authors = ["Balázs Keresztury <b@belidzs.hu>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.7"
 requests = "^2.28.2"
 
 

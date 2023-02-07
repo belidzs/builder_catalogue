@@ -1,16 +1,18 @@
 import logging
-from typing import Any, List
+import bisect
+import math
+from typing import List
 from api import LegoApi
-from model import DetailedSet, DetailedUser, Set
+from model import DetailedSet, DetailedUser, Set, User
 from copy import copy
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def get_buildable_sets(api: LegoApi, user: DetailedUser) -> List[Set]:
-    """Returns a list of sets the user can build"""
+    """Returns a list of sets the user can build on their own."""
     # get user
     sets = api.get_sets()
     
@@ -30,7 +32,8 @@ def get_buildable_sets(api: LegoApi, user: DetailedUser) -> List[Set]:
             result.append(set)
     return result
 
-def find_build_partner(api: LegoApi, user: DetailedUser, set: DetailedSet) -> List[Any]:
+def find_build_partner(api: LegoApi, user: DetailedUser, set: DetailedSet) -> List[DetailedUser]:
+    """Returns a list of users who have the proper bricks to build the desired set together with the provided user."""
     partners = []
     for partner in api.get_users():
         if partner.id == user.id:
@@ -44,9 +47,22 @@ def find_build_partner(api: LegoApi, user: DetailedUser, set: DetailedSet) -> Li
                 common_inventory[piece] += partner_detail.collection[piece]
             else:
                 common_inventory[piece] = partner_detail.collection[piece]
+
+        # check whether the common inventory is sufficient to build the desired set
         if set.is_buildable(common_inventory):
             partners.append(partner_detail)
     return partners
+
+def median(api: LegoApi, asking_user: User) -> int:
+    """Returns the number of bricks at least 50% of all users have, excluding the asking user."""
+    users = api.get_users()
+    brick_counts = []
+    for user in users:
+        if user.id == asking_user.id:
+            continue
+        bisect.insort(brick_counts, user.brick_count)
+    index = math.floor(len(brick_counts) / 2)
+    return(brick_counts[index - 1])
 
 
 if __name__ == "__main__":
@@ -57,8 +73,13 @@ if __name__ == "__main__":
     result = get_buildable_sets(api, user)
     logger.info(f"{user.username} can build the following sets: {[set.name for set in result]}")
     
-    # second challenge
+    # first stretch goal
     user = api.get_user_details_by_username("landscape-artist")
     set = api.get_set_details_by_name("tropical-island")
     result = find_build_partner(api, user, set)
     logger.info(f"{user.username} can partner up with the following users to build {set.name}: {[partner.username for partner in result]}")
+
+    # second stretch goal
+    user = api.get_user("megabuilder99")
+    result = median(api, user)
+    logger.info(f"{user.username} should build a custom set with a size <= {result}") 
