@@ -42,6 +42,7 @@ class LegoApi():
         return DetailedUser(user["id"], user["username"], user["brickCount"], collection)
     
     def get_user_details_by_username(self, username:str) -> DetailedUser:
+        """Returns detailed about a user by its username."""
         return self.get_user_details(self.get_user(username).id)
         
     def get_sets(self) -> List[Set]:
