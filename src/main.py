@@ -8,7 +8,7 @@ from copy import copy
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def get_buildable_sets(api: LegoApi, user: DetailedUser) -> List[Set]:
@@ -56,13 +56,17 @@ def find_build_partner(api: LegoApi, user: DetailedUser, set: DetailedSet) -> Li
 def median(api: LegoApi, asking_user: User) -> int:
     """Returns the number of bricks at least 50% of all users have, excluding the asking user."""
     users = api.get_users()
+    if len(users) == 1:
+        # the only user is the asking user
+        return 0
     brick_counts = []
     for user in users:
         if user.id == asking_user.id:
             continue
         bisect.insort(brick_counts, user.brick_count)
-    index = math.floor(len(brick_counts) / 2)
-    return(brick_counts[index - 1])
+    logger.debug(brick_counts)
+    index = int(math.floor(len(brick_counts) / 2))
+    return(brick_counts[index])
 
 
 if __name__ == "__main__":
@@ -82,4 +86,4 @@ if __name__ == "__main__":
     # second stretch goal
     user = api.get_user("megabuilder99")
     result = median(api, user)
-    logger.info(f"{user.username} should build a custom set with a size <= {result}") 
+    logger.info(f"{user.username} should build their custom set with a size <= {result} in order to at least 50% of the users have more bricks than required")
